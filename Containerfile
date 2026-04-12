@@ -115,4 +115,4 @@ USER agent
 WORKDIR /home/agent/workspace
 
 ENTRYPOINT ["zeroclaw"]
-CMD ["gateway"]
+CMD ["daemon"]
