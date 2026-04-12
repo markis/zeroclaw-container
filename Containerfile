@@ -60,7 +60,7 @@ ENV UV_SYSTEM_PYTHON=1 \
     UV_TOOL_BIN_DIR=/usr/local/bin
 
 # Install latest Python globally
-RUN uv python install --default 3.13
+RUN uv python install --preview --default 3.13
 
 # Install Node.js LTS (v22) with checksum verification
 ARG NODE_VERSION=22.14.0
