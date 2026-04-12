@@ -68,11 +68,11 @@ RUN case "${TARGETARCH}" in \
       amd64) NODE_ARCH="x64" ;; \
       arm64) NODE_ARCH="arm64" ;; \
     esac && \
-    TARBALL="node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" && \
+    TARBALL="node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.gz" && \
     curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/${TARBALL}" && \
     curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" \
         | grep "${TARBALL}" | sha256sum -c - && \
-    tar -xJf "${TARBALL}" --strip-components=1 -C /usr/local \
+    tar -xzf "${TARBALL}" --strip-components=1 -C /usr/local \
         --exclude "*/include" --exclude "*/share" && \
     rm "${TARBALL}"
 
