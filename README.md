@@ -12,7 +12,10 @@ Published to `ghcr.io/markis/zeroclaw-container`.
 | gh (GitHub CLI) | stable |
 | helm | v4.1.4 |
 | yq | v4.52.5 |
-| playwright + chromium | latest pip release |
+| agent-browser + Chrome for Testing | latest npm release |
+| uv / uvx | 0.6.14 |
+| Python | 3.13 (via uv) |
+| Node.js | v22.14.0 LTS |
 | ripgrep, jq, pandoc, imagemagick, tesseract-ocr, poppler-utils | apt stable |
 
 ## Local Build

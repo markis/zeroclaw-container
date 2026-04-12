@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+FROM ghcr.io/astral-sh/uv:0.6.14 AS uv
 FROM ghcr.io/zeroclaw-labs/zeroclaw:v0.6.9-debian AS zeroclaw
 
 ARG TARGETARCH
@@ -44,13 +45,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
     unzip \
-    python3 \
-    python3-pip \
     dnsutils \
     kubectl \
     gh \
     && apt-get purge -y gnupg && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+
+# Install uv and uvx
+COPY --from=uv /uv /uvx /bin/
+
+ENV UV_SYSTEM_PYTHON=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_TOOL_BIN_DIR=/usr/local/bin
+
+# Install latest Python globally
+RUN uv python install --default 3.13
+
+# Install Node.js LTS (v22) with checksum verification
+ARG NODE_VERSION=22.14.0
+RUN case "${TARGETARCH}" in \
+      amd64) NODE_ARCH="x64" ;; \
+      arm64) NODE_ARCH="arm64" ;; \
+    esac && \
+    TARBALL="node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" && \
+    curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/${TARBALL}" && \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" \
+        | grep "${TARBALL}" | sha256sum -c - && \
+    tar -xJf "${TARBALL}" --strip-components=1 -C /usr/local \
+        --exclude "*/include" --exclude "*/share" && \
+    rm "${TARBALL}"
 
 # Install helm (pinned version with checksum verification)
 RUN HELM_VERSION=v4.1.4 && \
@@ -73,13 +97,9 @@ RUN YQ_VERSION=v4.52.5 && \
     mv /tmp/yq /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
 
-# Install Playwright and Chromium with system dependencies
-# PLAYWRIGHT_BROWSERS_PATH set to a system-wide location so the agent user can access it
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/local/ms-playwright
-RUN pip3 install --break-system-packages playwright && \
-    playwright install --with-deps chromium && \
-    chmod -R 755 /usr/local/ms-playwright && \
-    ln -sf "$(python3 -c 'from playwright.sync_api import sync_playwright; p = sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" /usr/local/bin/chromium
+# Install agent-browser and Chrome for Testing with system dependencies
+RUN npm install -g agent-browser && \
+    agent-browser install --with-deps
 
 # Create non-root agent user and fix ownership
 RUN adduser --disabled-password --gecos "" --uid 1000 agent && \
@@ -89,8 +109,7 @@ RUN adduser --disabled-password --gecos "" --uid 1000 agent && \
 ENV NULLCLAW_WORKSPACE=/home/agent/workspace \
     NULLCLAW_HOME=/home/agent \
     HOME=/home/agent \
-    NULLCLAW_GATEWAY_PORT=3000 \
-    PLAYWRIGHT_BROWSERS_PATH=/usr/local/ms-playwright
+    NULLCLAW_GATEWAY_PORT=3000
 
 EXPOSE 3000
 USER agent
