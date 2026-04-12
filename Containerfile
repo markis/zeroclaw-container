@@ -106,14 +106,13 @@ RUN adduser --disabled-password --gecos "" --uid 1000 agent && \
     mkdir -p /home/agent/workspace && \
     chown -R agent:agent /home/agent
 
-ENV NULLCLAW_WORKSPACE=/home/agent/workspace \
-    NULLCLAW_HOME=/home/agent \
+ENV ZEROCLAW_WORKSPACE=/home/agent/workspace \
     HOME=/home/agent \
-    NULLCLAW_GATEWAY_PORT=3000
+    ZEROCLAW_GATEWAY_PORT=3000
 
 EXPOSE 3000
 USER agent
 WORKDIR /home/agent/workspace
 
-ENTRYPOINT ["nullclaw"]
+ENTRYPOINT ["zeroclaw"]
 CMD ["gateway"]
