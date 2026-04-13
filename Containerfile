@@ -62,20 +62,6 @@ ENV UV_SYSTEM_PYTHON=1 \
 # Install latest Python globally
 RUN uv python install --preview --default 3.13
 
-# Install Node.js LTS (v22) with checksum verification
-ARG NODE_VERSION=22.14.0
-RUN case "${TARGETARCH}" in \
-      amd64) NODE_ARCH="x64" ;; \
-      arm64) NODE_ARCH="arm64" ;; \
-    esac && \
-    TARBALL="node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.gz" && \
-    curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/${TARBALL}" && \
-    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" \
-        | grep "${TARBALL}" | sha256sum -c - && \
-    tar -xzf "${TARBALL}" --strip-components=1 -C /usr/local \
-        --exclude "*/include" --exclude "*/share" && \
-    rm "${TARBALL}"
-
 # Install helm (pinned version with checksum verification)
 RUN HELM_VERSION=v4.1.4 && \
     HELM_ARCHIVE="helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz" && \
@@ -97,8 +83,19 @@ RUN YQ_VERSION=v4.52.5 && \
     mv /tmp/yq /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
 
-# Install agent-browser; Chrome for Testing is amd64-only, use system chromium on arm64
-RUN npm install -g agent-browser && \
+# Install agent-browser binary (pinned version with checksum verification)
+# Chrome for Testing is amd64-only; install system chromium on arm64
+ARG AGENT_BROWSER_VERSION=v0.25.4
+RUN case "${TARGETARCH}" in \
+      amd64) BINARY="agent-browser-linux-x64" \
+             SHA256="02d26f105a9d8e203f8f966acfeb4bab191cfa4625431a535b8be5f8f5905472" ;; \
+      arm64) BINARY="agent-browser-linux-arm64" \
+             SHA256="f44b037cf208e1c5771ad498983f5674aca2b65da5c1b2f440aba901f3ddf536" ;; \
+    esac && \
+    curl -fsSL "https://github.com/vercel-labs/agent-browser/releases/download/${AGENT_BROWSER_VERSION}/${BINARY}" \
+        -o /usr/local/bin/agent-browser && \
+    echo "${SHA256}  /usr/local/bin/agent-browser" | sha256sum -c && \
+    chmod +x /usr/local/bin/agent-browser && \
     case "${TARGETARCH}" in \
       amd64) agent-browser install --with-deps ;; \
       arm64) apt-get update && apt-get install -y --no-install-recommends chromium \
