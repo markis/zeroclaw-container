@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
     unzip \
+    bzip2 \
     dnsutils \
     kubectl \
     gh \
@@ -82,6 +83,17 @@ RUN YQ_VERSION=v4.52.5 && \
     echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c && \
     mv /tmp/yq /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
+
+# Install restic (pinned version with checksum verification)
+RUN RESTIC_VERSION=0.18.1 && \
+    RESTIC_ARCHIVE="restic_${RESTIC_VERSION}_linux_${TARGETARCH}.bz2" && \
+    curl -fsSL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/${RESTIC_ARCHIVE}" \
+        -o "/tmp/${RESTIC_ARCHIVE}" && \
+    curl -fsSL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/SHA256SUMS" \
+        | grep "${RESTIC_ARCHIVE}" | sha256sum -c - && \
+    bzip2 -d "/tmp/${RESTIC_ARCHIVE}" && \
+    mv "/tmp/restic_${RESTIC_VERSION}_linux_${TARGETARCH}" /usr/local/bin/restic && \
+    chmod +x /usr/local/bin/restic
 
 # Install agent-browser binary (pinned version with checksum verification)
 # Chrome for Testing is amd64-only; install system chromium on arm64
