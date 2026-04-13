@@ -12,6 +12,7 @@ Published to `ghcr.io/markis/zeroclaw-container`.
 | gh (GitHub CLI) | stable |
 | helm | v4.1.4 |
 | yq | v4.52.5 |
+| neovim | v0.12.1 |
 | restic | v0.18.1 |
 | agent-browser + Chrome for Testing | v0.25.4 |
 | uv / uvx | 0.6.14 |

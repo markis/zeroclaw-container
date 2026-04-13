@@ -96,6 +96,21 @@ RUN RESTIC_VERSION=0.18.1 && \
     mv "/tmp/restic_${RESTIC_VERSION}_linux_${TARGETARCH}" /usr/local/bin/restic && \
     chmod +x /usr/local/bin/restic
 
+# Install neovim (pinned version with checksum verification)
+RUN case "${TARGETARCH}" in \
+      amd64) NVIM_ARCH="x86_64" \
+             SHA256="ab757a1fd9ad307d53d2df4045698906a7ca3993d92260dd8fe49108712d57d0" ;; \
+      arm64) NVIM_ARCH="arm64" \
+             SHA256="a3f8aa5590fd2ac930bcc5c9070b9ac1ec33461d262b6428874c5fc640f3f13c" ;; \
+    esac && \
+    TARBALL="nvim-linux-${NVIM_ARCH}.tar.gz" && \
+    curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.1/${TARBALL}" \
+        -o "/tmp/${TARBALL}" && \
+    echo "${SHA256}  /tmp/${TARBALL}" | sha256sum -c && \
+    tar -xz -C /tmp -f "/tmp/${TARBALL}" && \
+    mv "/tmp/nvim-linux-${NVIM_ARCH}/bin/nvim" /usr/local/bin/nvim && \
+    rm -rf "/tmp/${TARBALL}" "/tmp/nvim-linux-${NVIM_ARCH}"
+
 # Install agent-browser binary (pinned version with checksum verification)
 # Chrome for Testing is amd64-only; install system chromium on arm64
 ARG AGENT_BROWSER_VERSION=v0.25.4
