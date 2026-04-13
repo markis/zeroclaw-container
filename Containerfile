@@ -63,6 +63,9 @@ ENV UV_SYSTEM_PYTHON=1 \
 # Install latest Python globally
 RUN uv python install --preview --default 3.13
 
+# Install Python-based tools
+RUN uv tool install trash-cli
+
 # Install helm (pinned version with checksum verification)
 RUN HELM_VERSION=v4.1.4 && \
     HELM_ARCHIVE="helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz" && \
