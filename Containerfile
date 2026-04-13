@@ -97,9 +97,13 @@ RUN YQ_VERSION=v4.52.5 && \
     mv /tmp/yq /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
 
-# Install agent-browser and Chrome for Testing with system dependencies
+# Install agent-browser; Chrome for Testing is amd64-only, use system chromium on arm64
 RUN npm install -g agent-browser && \
-    agent-browser install --with-deps
+    case "${TARGETARCH}" in \
+      amd64) agent-browser install --with-deps ;; \
+      arm64) apt-get update && apt-get install -y --no-install-recommends chromium \
+             && rm -rf /var/lib/apt/lists/* ;; \
+    esac
 
 # Create non-root agent user and fix ownership
 RUN adduser --disabled-password --gecos "" --uid 1000 agent && \
