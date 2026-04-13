@@ -89,8 +89,9 @@ RUN RESTIC_VERSION=0.18.1 && \
     RESTIC_ARCHIVE="restic_${RESTIC_VERSION}_linux_${TARGETARCH}.bz2" && \
     curl -fsSL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/${RESTIC_ARCHIVE}" \
         -o "/tmp/${RESTIC_ARCHIVE}" && \
-    curl -fsSL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/SHA256SUMS" \
-        | grep "${RESTIC_ARCHIVE}" | sha256sum -c - && \
+    RESTIC_SHA256=$(curl -fsSL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/SHA256SUMS" \
+        | grep "${RESTIC_ARCHIVE}$" | awk '{print $1}') && \
+    echo "${RESTIC_SHA256}  /tmp/${RESTIC_ARCHIVE}" | sha256sum -c && \
     bzip2 -d "/tmp/${RESTIC_ARCHIVE}" && \
     mv "/tmp/restic_${RESTIC_VERSION}_linux_${TARGETARCH}" /usr/local/bin/restic && \
     chmod +x /usr/local/bin/restic
