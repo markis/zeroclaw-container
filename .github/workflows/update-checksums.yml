@@ -1,0 +1,141 @@
+name: Update Checksums
+
+on:
+  pull_request:
+    paths:
+      - Containerfile
+    branches:
+      - 'renovate/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-checksums:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Detect version changes and update checksums
+        run: |
+          set -euo pipefail
+
+          DIFF=$(git diff origin/main -- Containerfile)
+
+          # Detect new versions from diff
+          NVIM_NEW_VER=$(echo "$DIFF" | grep -oP '^\+.*neovim/neovim/releases/download/v\K[0-9.]+' | head -1 || true)
+          AB_NEW_VER=$(echo "$DIFF" | grep -oP '^\+.*AGENT_BROWSER_VERSION=v\K[0-9.]+' | head -1 || true)
+
+          if [ -z "$NVIM_NEW_VER" ] && [ -z "$AB_NEW_VER" ]; then
+            echo "No checksum-pinned tools changed. Skipping."
+            exit 0
+          fi
+
+          TOOLS_CHANGED=()
+
+          # --- neovim ---
+          if [ -n "$NVIM_NEW_VER" ]; then
+            echo "==> neovim changed to v${NVIM_NEW_VER}"
+            TOOLS_CHANGED+=("neovim")
+
+            curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NVIM_NEW_VER}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim-amd64.tar.gz
+            NVIM_AMD64_SHA=$(sha256sum /tmp/nvim-amd64.tar.gz | awk '{print $1}')
+            echo "  amd64 SHA256: ${NVIM_AMD64_SHA}"
+
+            curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NVIM_NEW_VER}/nvim-linux-arm64.tar.gz" -o /tmp/nvim-arm64.tar.gz
+            NVIM_ARM64_SHA=$(sha256sum /tmp/nvim-arm64.tar.gz | awk '{print $1}')
+            echo "  arm64 SHA256: ${NVIM_ARM64_SHA}"
+          else
+            NVIM_AMD64_SHA=""
+            NVIM_ARM64_SHA=""
+          fi
+
+          # --- agent-browser ---
+          if [ -n "$AB_NEW_VER" ]; then
+            echo "==> agent-browser changed to v${AB_NEW_VER}"
+            TOOLS_CHANGED+=("agent-browser")
+
+            curl -fsSL "https://github.com/vercel-labs/agent-browser/releases/download/v${AB_NEW_VER}/agent-browser-linux-x64" -o /tmp/ab-amd64
+            AB_AMD64_SHA=$(sha256sum /tmp/ab-amd64 | awk '{print $1}')
+            echo "  amd64 SHA256: ${AB_AMD64_SHA}"
+
+            curl -fsSL "https://github.com/vercel-labs/agent-browser/releases/download/v${AB_NEW_VER}/agent-browser-linux-arm64" -o /tmp/ab-arm64
+            AB_ARM64_SHA=$(sha256sum /tmp/ab-arm64 | awk '{print $1}')
+            echo "  arm64 SHA256: ${AB_ARM64_SHA}"
+          else
+            AB_AMD64_SHA=""
+            AB_ARM64_SHA=""
+          fi
+
+          # --- Patch Containerfile ---
+          export NVIM_AMD64_SHA NVIM_ARM64_SHA AB_AMD64_SHA AB_ARM64_SHA
+          python3 << 'PYEOF'
+          import re, os
+
+          with open("Containerfile", "r") as f:
+              content = f.read()
+
+          nvim_amd64 = os.environ.get("NVIM_AMD64_SHA", "")
+          nvim_arm64 = os.environ.get("NVIM_ARM64_SHA", "")
+          ab_amd64 = os.environ.get("AB_AMD64_SHA", "")
+          ab_arm64 = os.environ.get("AB_ARM64_SHA", "")
+
+          sha_pattern = r'SHA256="[a-f0-9]{64}"'
+
+          # --- neovim: replace first two SHA256= lines in the neovim block ---
+          if nvim_amd64 and nvim_arm64:
+              nvim_start = content.index("# Install neovim")
+              nvim_end = content.index("# Install agent-browser")
+              nvim_block = content[nvim_start:nvim_end]
+
+              matches = list(re.finditer(sha_pattern, nvim_block))
+              if len(matches) >= 2:
+                  nvim_block = nvim_block[:matches[0].start()] + f'SHA256="{nvim_amd64}"' + nvim_block[matches[0].end():]
+                  # Recompute second match after replacement
+                  matches = list(re.finditer(sha_pattern, nvim_block))
+                  if len(matches) >= 2:
+                      nvim_block = nvim_block[:matches[1].start()] + f'SHA256="{nvim_arm64}"' + nvim_block[matches[1].end():]
+                  content = content[:nvim_start] + nvim_block + content[nvim_end:]
+                  print(f"  Patched neovim checksums")
+              else:
+                  print(f"  WARNING: could not find 2 SHA256 lines in neovim block")
+
+          # --- agent-browser: replace first two SHA256= lines in the agent-browser block ---
+          if ab_amd64 and ab_arm64:
+              ab_start = content.index("# Install agent-browser")
+              ab_block = content[ab_start:]
+
+              matches = list(re.finditer(sha_pattern, ab_block))
+              if len(matches) >= 2:
+                  ab_block = ab_block[:matches[0].start()] + f'SHA256="{ab_amd64}"' + ab_block[matches[0].end():]
+                  matches = list(re.finditer(sha_pattern, ab_block))
+                  if len(matches) >= 2:
+                      ab_block = ab_block[:matches[1].start()] + f'SHA256="{ab_arm64}"' + ab_block[matches[1].end():]
+                  content = content[:ab_start] + ab_block
+                  print(f"  Patched agent-browser checksums")
+              else:
+                  print(f"  WARNING: could not find 2 SHA256 lines in agent-browser block")
+
+          with open("Containerfile", "w") as f:
+              f.write(content)
+          PYEOF
+
+          # --- Commit if changed ---
+          if git diff --quiet Containerfile; then
+            echo "Checksums already up to date."
+            exit 0
+          fi
+
+          TOOLS_STR=$(IFS=, ; echo "${TOOLS_CHANGED[*]}")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Containerfile
+          git commit -m "chore: update SHA256 checksums for ${TOOLS_STR}"
+          git push
+          echo "Pushed checksum updates for: ${TOOLS_STR}"
