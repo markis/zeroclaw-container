@@ -4,7 +4,8 @@
   "schedule": ["before 6am on Monday"],
   "prConcurrentLimit": 10,
   "labels": ["dependencies"],
-  "branchName": "renovate/{{depName}}",
+  "branchPrefix": "renovate/",
+  "additionalBranchPrefix": "{{depName}}-",
   "customManagers": [
     {
       "description": "kubectl apt repo (minor version tracks kubernetes releases)",
