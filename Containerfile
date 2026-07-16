@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM ghcr.io/astral-sh/uv:0.11.29 AS uv
-FROM ghcr.io/zeroclaw-labs/zeroclaw:v0.8.2-debian AS zeroclaw
+FROM ghcr.io/zeroclaw-labs/zeroclaw:v0.8.3-debian AS zeroclaw
 
 ARG TARGETARCH
 
