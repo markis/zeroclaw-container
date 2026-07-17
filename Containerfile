@@ -35,12 +35,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     git \
+    gnupg \
     jq \
     gettext-base \
     imagemagick \
     openssl \
     openssh-client \
     pandoc \
+    pass \
     poppler-utils \
     ripgrep \
     tesseract-ocr \
@@ -51,7 +53,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     kubectl \
     gh \
     nodejs \
-    && apt-get purge -y gnupg && apt-get autoremove -y \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv and uvx
