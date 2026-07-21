@@ -53,6 +53,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     kubectl \
     gh \
     nodejs \
+    postgresql-client \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 

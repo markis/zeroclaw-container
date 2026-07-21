@@ -19,6 +19,7 @@ Published to `ghcr.io/markis/zeroclaw-container`.
 | uv / uvx | 0.6.14 |
 | Python | 3.13 (via uv) |
 | ripgrep, jq, pandoc, imagemagick, tesseract-ocr, poppler-utils | apt stable |
+| postgresql-client (psql) | 15 (Debian stable) |
 
 ## Local Build
 
