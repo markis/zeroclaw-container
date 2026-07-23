@@ -13,8 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 RUN git clone --depth 1 --branch ${ZEROCLAW_VERSION} \
       https://github.com/zeroclaw-labs/zeroclaw.git .
+ARG TARGETARCH
 RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,id=zeroclaw-cargo-target,target=/app/target,sharing=locked \
+    --mount=type=cache,id=zeroclaw-cargo-target-${TARGETARCH},target=/app/target,sharing=locked \
     cargo build --release --locked -p zeroclawlabs \
       --no-default-features \
       --features "${ZEROCLAW_CARGO_FEATURES}" \
@@ -169,7 +170,7 @@ RUN case "${TARGETARCH}" in \
     esac
 
 # Overwrite the pre-built zeroclaw binary with the OTel-enabled build
-COPY --from=zeroclaw-builder /app/zeroclaw /usr/local/bin/zeroclaw
+COPY --chmod=755 --from=zeroclaw-builder /app/zeroclaw /usr/local/bin/zeroclaw
 
 # Create non-root agent user and fix ownership
 RUN adduser --disabled-password --gecos "" --uid 1000 agent && \
