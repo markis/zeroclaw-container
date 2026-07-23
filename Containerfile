@@ -13,10 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 RUN git clone --depth 1 --branch ${ZEROCLAW_VERSION} \
       https://github.com/zeroclaw-labs/zeroclaw.git .
-ARG TARGETARCH
-RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,id=zeroclaw-cargo-target-${TARGETARCH},target=/app/target,sharing=locked \
-    cargo build --release --locked -p zeroclawlabs \
+RUN cargo build --release --locked -p zeroclawlabs \
       --no-default-features \
       --features "${ZEROCLAW_CARGO_FEATURES}" \
     && cp target/release/zeroclaw /app/zeroclaw \
