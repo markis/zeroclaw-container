@@ -21,6 +21,29 @@ Published to `ghcr.io/markis/zeroclaw-container`.
 | ripgrep, jq, pandoc, imagemagick, tesseract-ocr, poppler-utils | apt stable |
 | postgresql-client (psql) | 15 (Debian stable) |
 
+## zeroclaw Build
+
+The container image compiles zeroclaw from source (tag `v0.8.3`) with the
+`observability-otel` cargo feature enabled, rather than using the pre-built
+binary from the upstream image. This allows OpenTelemetry traces to be
+exported when `backend = "otel"` is set in the zeroclaw config.
+
+**Cargo features enabled:**
+`acp-bridge, agent-runtime, channel-acp-server, channel-discord,
+channel-email, channel-filesystem, channel-webhook, gateway,
+observability-prometheus, observability-otel, schema-export`
+
+To change the zeroclaw version or feature set, override the build args:
+
+```sh
+docker buildx build \
+  --build-arg TARGETARCH=amd64 \
+  --build-arg ZEROCLAW_VERSION=v0.8.3 \
+  --build-arg ZEROCLAW_CARGO_FEATURES="acp-bridge,agent-runtime,channel-discord,gateway,observability-otel" \
+  -t zeroclaw-container:local \
+  -f Containerfile .
+```
+
 ## Local Build
 
 Requires Docker with [buildx](https://docs.docker.com/buildx/working-with-buildx/) support.
