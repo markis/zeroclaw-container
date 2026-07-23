@@ -4,7 +4,7 @@ FROM ghcr.io/astral-sh/uv:0.11.29 AS uv
 FROM ghcr.io/zeroclaw-labs/zeroclaw:v0.8.3-debian AS zeroclaw
 
 # ── Build zeroclaw from source with observability-otel ──────────
-FROM rust:1.96-bookworm AS zeroclaw-builder
+FROM rust:1.97-bookworm AS zeroclaw-builder
 ARG ZEROCLAW_VERSION=v0.8.3
 ARG ZEROCLAW_CARGO_FEATURES="acp-bridge,agent-runtime,channel-acp-server,channel-discord,channel-email,channel-filesystem,channel-webhook,gateway,observability-prometheus,observability-otel,schema-export"
 RUN apt-get update && apt-get install -y --no-install-recommends \
