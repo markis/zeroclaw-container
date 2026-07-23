@@ -3,6 +3,24 @@
 FROM ghcr.io/astral-sh/uv:0.11.29 AS uv
 FROM ghcr.io/zeroclaw-labs/zeroclaw:v0.8.3-debian AS zeroclaw
 
+# ── Build zeroclaw from source with observability-otel ──────────
+FROM rust:1.96-bookworm AS zeroclaw-builder
+ARG ZEROCLAW_VERSION=v0.8.3
+ARG ZEROCLAW_CARGO_FEATURES="acp-bridge,agent-runtime,channel-acp-server,channel-discord,channel-email,channel-filesystem,channel-webhook,gateway,observability-prometheus,observability-otel,schema-export"
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git pkg-config g++ \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN git clone --depth 1 --branch ${ZEROCLAW_VERSION} \
+      https://github.com/zeroclaw-labs/zeroclaw.git .
+RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,id=zeroclaw-cargo-target,target=/app/target,sharing=locked \
+    cargo build --release --locked -p zeroclawlabs \
+      --no-default-features \
+      --features "${ZEROCLAW_CARGO_FEATURES}" \
+    && cp target/release/zeroclaw /app/zeroclaw \
+    && strip /app/zeroclaw
+
 ARG TARGETARCH
 
 # Validate TARGETARCH
