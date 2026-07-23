@@ -21,6 +21,8 @@ RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/regist
     && cp target/release/zeroclaw /app/zeroclaw \
     && strip /app/zeroclaw
 
+# ── Runtime stage: the shipped image ────────────────────────────
+FROM zeroclaw
 ARG TARGETARCH
 
 # Validate TARGETARCH
@@ -165,6 +167,9 @@ RUN case "${TARGETARCH}" in \
       arm64) apt-get update && apt-get install -y --no-install-recommends chromium \
              && rm -rf /var/lib/apt/lists/* ;; \
     esac
+
+# Overwrite the pre-built zeroclaw binary with the OTel-enabled build
+COPY --from=zeroclaw-builder /app/zeroclaw /usr/local/bin/zeroclaw
 
 # Create non-root agent user and fix ownership
 RUN adduser --disabled-password --gecos "" --uid 1000 agent && \
