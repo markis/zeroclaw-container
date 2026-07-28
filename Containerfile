@@ -93,6 +93,22 @@ RUN NODE_VERSION=v24.18.0 && \
     rm -f "/tmp/${TARBALL}" && \
     node --version && npm --version
 
+# Install MCP server packages used by homelab cron jobs (pinned exactly).
+# Bumping these is an explicit, reviewable change — the homelab runtime
+# patchers (holdms / captcha) are tested against these specific versions.
+# Installed globally so they live on the read-only rootfs at
+# /usr/local/lib/node_modules, avoiding the noexec-tmpfs npx-cache problem
+# where execve() on the resolved .bin symlinks failed with EPERM.
+RUN npm install -g --no-audit --no-fund \
+        camofox-mcp@1.14.5 \
+        @perplexity-ai/mcp-server@1.2.0 \
+    && rm -rf /root/.npm
+
+# Make global node_modules resolvable via bare require (e.g.
+# `node -e "require('camofox-mcp/package.json')"`) and by the homelab
+# patchers that require camofox-mcp internals at runtime.
+ENV NODE_PATH=/usr/local/lib/node_modules
+
 # Install uv and uvx
 COPY --from=uv /uv /uvx /bin/
 
