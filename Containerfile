@@ -68,6 +68,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     bzip2 \
     dnsutils \
+    ffmpeg \
     kubectl \
     gh \
     nodejs \
