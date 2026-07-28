@@ -31,14 +31,13 @@ RUN case "${TARGETARCH}" in \
 
 USER root
 
-# Set up apt repos for Node.js, kubectl, and gh CLI, then install all packages in one layer
+# Set up apt repos for kubectl and gh CLI, then install all packages in one layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     gnupg \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /etc/apt/keyrings \
-    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key \
        | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
      && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /' \
@@ -71,10 +70,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     kubectl \
     gh \
-    nodejs \
     postgresql-client \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js (pinned version with checksum verification)
+# NodeSource's apt repo is signed with a SHA1-based key that current apt
+# rejects ("provides only weak security information"), so install from the
+# official nodejs.org tarball instead — same pattern as helm/yq/restic/neovim.
+RUN NODE_VERSION=v24.18.0 && \
+    case "${TARGETARCH}" in \
+      amd64) NODE_ARCH="linux-x64" ;; \
+      arm64) NODE_ARCH="linux-arm64" ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac && \
+    TARBALL="node-${NODE_VERSION}-${NODE_ARCH}.tar.gz" && \
+    curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/${TARBALL}" -o "/tmp/${TARBALL}" && \
+    NODE_SHA256=$(curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/SHASUMS256.txt" \
+        | grep " ${TARBALL}\$" | awk '{print $1}') && \
+    echo "${NODE_SHA256}  /tmp/${TARBALL}" | sha256sum -c && \
+    tar -xzf "/tmp/${TARBALL}" -C /usr/local --strip-components=1 && \
+    rm -f "/tmp/${TARBALL}" && \
+    node --version && npm --version
 
 # Install uv and uvx
 COPY --from=uv /uv /uvx /bin/
