@@ -104,9 +104,23 @@ RUN npm install -g --no-audit --no-fund \
         @perplexity-ai/mcp-server@1.2.0 \
     && rm -rf /root/.npm
 
+# Pre-bake the homelab camofox-mcp patches into the image so the runtime
+# mirror dance (setup-pass.sh cp -r + two node invocations) can go away.
+# The patchers are idempotent source-text substitutions tuned to
+# camofox-mcp@1.14.5; the && chain fails the build loudly if upstream's
+# dist/ refactors break the regex anchors (each patcher exits 1 on anchor
+# mismatch). Cleanup drops the patch source from the image. Run as root
+# (still in the USER root block) so the global install is writable.
+COPY containers/patches/camofox-mcp/ /tmp/camofox-mcp-patches/
+RUN node /tmp/camofox-mcp-patches/patch-holdms.js \
+ && node /tmp/camofox-mcp-patches/patch-captcha.js \
+ && rm -rf /tmp/camofox-mcp-patches \
+ && echo "camofox-mcp patched; verify:" \
+ && head -n1 /usr/local/lib/node_modules/camofox-mcp/dist/tools/interaction.js \
+ && grep -c registerPressHoldCaptchaTool /usr/local/lib/node_modules/camofox-mcp/dist/server.js
+
 # Make global node_modules resolvable via bare require (e.g.
-# `node -e "require('camofox-mcp/package.json')"`) and by the homelab
-# patchers that require camofox-mcp internals at runtime.
+# `node -e "require('camofox-mcp/package.json')"`).
 ENV NODE_PATH=/usr/local/lib/node_modules
 
 # Install uv and uvx
