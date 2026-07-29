@@ -190,9 +190,9 @@ RUN case "${TARGETARCH}" in \
 ARG AGENT_BROWSER_VERSION=v0.33.1
 RUN case "${TARGETARCH}" in \
       amd64) BINARY="agent-browser-linux-x64" \
-             SHA256="b77d85eb8d0d305be4170f9477c59f0304b3609dc39bf0e8b8c740a1abd1e08a" ;; \
+             SHA256="6e04d06605c4ca62da36e3263086e0f7ceae808b55508de2c3958d4b7fe430aa" ;; \
       arm64) BINARY="agent-browser-linux-arm64" \
-             SHA256="fa7b238d76ab45a429c089629417f4f15d68cac9c4369932e5d09d62dada9264" ;; \
+             SHA256="281cce8e3e9eb11fd823b13c085996d7361c35923ad454ce5cb06a5515630e9b" ;; \
     esac && \
     curl -fsSL "https://github.com/vercel-labs/agent-browser/releases/download/${AGENT_BROWSER_VERSION}/${BINARY}" \
         -o /usr/local/bin/agent-browser && \
