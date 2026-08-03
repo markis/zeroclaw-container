@@ -5,7 +5,7 @@ FROM ghcr.io/zeroclaw-labs/zeroclaw:v0.8.4-debian AS zeroclaw
 
 # ── Build zeroclaw from source with observability-otel ──────────
 FROM rust:1.97-bookworm AS zeroclaw-builder
-ARG ZEROCLAW_VERSION=v0.8.3
+ARG ZEROCLAW_VERSION=v0.8.4
 ARG ZEROCLAW_CARGO_FEATURES="acp-bridge,agent-runtime,channel-acp-server,channel-discord,channel-email,channel-filesystem,channel-webhook,gateway,observability-prometheus,observability-otel,schema-export"
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git pkg-config g++ \
