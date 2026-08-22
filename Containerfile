@@ -149,7 +149,7 @@ RUN HELM_VERSION=v4.2.3 && \
 
 # Install yq (pinned version with checksum verification)
 # SHA-256 is field 19 in the checksums file (filename + 31 hash types, SHA-256 is #18)
-RUN YQ_VERSION=v4.53.3 && \
+RUN YQ_VERSION=v4.53.6 && \
     YQ_BINARY="yq_linux_${TARGETARCH}" && \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY}" -o /tmp/yq && \
     YQ_SHA256=$(curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/checksums" \
