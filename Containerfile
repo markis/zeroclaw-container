@@ -138,7 +138,7 @@ RUN uv python install --preview --default 3.14
 RUN uv tool install trash-cli
 
 # Install helm (pinned version with checksum verification)
-RUN HELM_VERSION=v4.2.3 && \
+RUN HELM_VERSION=v4.2.4 && \
     HELM_ARCHIVE="helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz" && \
     curl -fsSL "https://get.helm.sh/${HELM_ARCHIVE}" -o "/tmp/${HELM_ARCHIVE}" && \
     curl -fsSL "https://get.helm.sh/${HELM_ARCHIVE}.sha256sum" -o /tmp/helm.sha256 && \
