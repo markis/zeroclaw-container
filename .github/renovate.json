@@ -1,8 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommits"],
+  "extends": ["config:recommended"],
+  "gitAuthor": "Markis Taylor <m@rkis.net>",
+  "timezone": "America/Los_Angeles",
   "schedule": ["before 6am on Monday"],
-  "prConcurrentLimit": 10,
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "semanticCommits": "enabled",
+  "commitMessagePrefix": "chore:",
+  "separateMinorPatch": false,
   "labels": ["dependencies"],
   "branchPrefix": "renovate/",
   "additionalBranchPrefix": "{{depName}}-",
@@ -56,7 +62,7 @@
       "datasourceTemplate": "github-releases"
     },
     {
-      "description": "neovim (checksums must be updated manually or via CI)",
+      "description": "neovim (checksums updated by update-checksums workflow)",
       "customType": "regex",
       "fileMatch": ["^Containerfile$"],
       "matchStrings": [
@@ -66,12 +72,145 @@
       "datasourceTemplate": "github-releases"
     },
     {
-      "description": "agent-browser (checksums must be updated manually or via CI)",
+      "description": "agent-browser (checksums updated by update-checksums workflow)",
       "customType": "regex",
       "fileMatch": ["^Containerfile$"],
       "matchStrings": ["AGENT_BROWSER_VERSION=(?<currentValue>v[0-9.]+)"],
       "depNameTemplate": "vercel-labs/agent-browser",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "description": "Node.js version (installed from nodejs.org tarball)",
+      "customType": "regex",
+      "fileMatch": ["^Containerfile$"],
+      "matchStrings": ["NODE_VERSION=(?<currentValue>v[0-9.]+)"],
+      "depNameTemplate": "nodejs/node",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "node"
+    },
+    {
+      "description": "camofox-mcp npm package (pinned exactly, patches require manual review)",
+      "customType": "regex",
+      "fileMatch": ["^Containerfile$"],
+      "matchStrings": ["camofox-mcp@(?<currentValue>[0-9.]+)"],
+      "depNameTemplate": "camofox-mcp",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "description": "@perplexity-ai/mcp-server npm package (pinned exactly)",
+      "customType": "regex",
+      "fileMatch": ["^Containerfile$"],
+      "matchStrings": ["@perplexity-ai/mcp-server@(?<currentValue>[0-9.]+)"],
+      "depNameTemplate": "@perplexity-ai/mcp-server",
+      "datasourceTemplate": "npm"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Auto-merge patch and minor updates for GitHub release deps",
+      "matchDatasources": ["github-releases"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Auto-merge patch and minor updates for Docker base images",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Auto-merge patch updates for npm packages (minor may break patches)",
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "camofox-mcp requires manual review (patches are version-pinned)",
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["camofox-mcp"],
+      "automerge": false
+    },
+    {
+      "description": "zeroclaw base image - group updates",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/zeroclaw-labs/zeroclaw"],
+      "groupName": "zeroclaw",
+      "commitMessageTopic": "zeroclaw",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "uv base image - group updates",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/astral-sh/uv"],
+      "groupName": "uv",
+      "commitMessageTopic": "uv",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "rust base image - group updates",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["rust"],
+      "groupName": "rust",
+      "commitMessageTopic": "rust",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "kubernetes/kubectl - major updates require manual review",
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["kubernetes/kubernetes"],
+      "commitMessageTopic": "kubectl",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": false
+    },
+    {
+      "description": "neovim - checksums updated by CI workflow after merge",
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["neovim/neovim"],
+      "commitMessageTopic": "neovim",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "agent-browser - checksums updated by CI workflow after merge",
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["vercel-labs/agent-browser"],
+      "commitMessageTopic": "agent-browser",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Python - major updates require manual review",
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["python/cpython"],
+      "commitMessageTopic": "python",
+      "commitMessageExtra": "to {{newVersion}}",
+      "commitMessagePrefix": "chore:",
+      "automerge": false
     }
   ]
 }
