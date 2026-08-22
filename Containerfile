@@ -100,14 +100,14 @@ RUN NODE_VERSION=v24.18.0 && \
 # /usr/local/lib/node_modules, avoiding the noexec-tmpfs npx-cache problem
 # where execve() on the resolved .bin symlinks failed with EPERM.
 RUN npm install -g --no-audit --no-fund \
-        camofox-mcp@1.14.5 \
+        camofox-mcp@1.15.0 \
         @perplexity-ai/mcp-server@1.2.0 \
     && rm -rf /root/.npm
 
 # Pre-bake the homelab camofox-mcp patches into the image so the runtime
 # mirror dance (setup-pass.sh cp -r + two node invocations) can go away.
 # The patchers are idempotent source-text substitutions tuned to
-# camofox-mcp@1.14.5; the && chain fails the build loudly if upstream's
+# camofox-mcp@1.15.0; the && chain fails the build loudly if upstream's
 # dist/ refactors break the regex anchors (each patcher exits 1 on anchor
 # mismatch). Cleanup drops the patch source from the image. Run as root
 # (still in the USER root block) so the global install is writable.
