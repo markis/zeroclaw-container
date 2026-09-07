@@ -101,7 +101,7 @@ RUN NODE_VERSION=v24.18.0 && \
 # where execve() on the resolved .bin symlinks failed with EPERM.
 RUN npm install -g --no-audit --no-fund \
         camofox-mcp@1.15.0 \
-        @perplexity-ai/mcp-server@1.2.0 \
+        @perplexity-ai/mcp-server@1.2.1 \
     && rm -rf /root/.npm
 
 # Pre-bake the homelab camofox-mcp patches into the image so the runtime
