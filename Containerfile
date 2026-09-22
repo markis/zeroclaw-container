@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 RUN git clone --depth 1 --branch ${ZEROCLAW_VERSION} \
       https://github.com/zeroclaw-labs/zeroclaw.git .
-RUN cargo build --release --locked -p zeroclawlabs \
+RUN cargo build --release --locked -p zeroclaw \
       --no-default-features \
       --features "${ZEROCLAW_CARGO_FEATURES}" \
     && cp target/release/zeroclaw /app/zeroclaw \
