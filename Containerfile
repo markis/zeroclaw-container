@@ -178,7 +178,7 @@ RUN case "${TARGETARCH}" in \
              SHA256="1aa5ca085249580ae0f91eb14f27ec0919773ff2d99a163d03f3d6c21ac29725" ;; \
     esac && \
     TARBALL="nvim-linux-${NVIM_ARCH}.tar.gz" && \
-    curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.5/${TARBALL}" \
+    curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.6/${TARBALL}" \
         -o "/tmp/${TARBALL}" && \
     echo "${SHA256}  /tmp/${TARBALL}" | sha256sum -c && \
     tar -xz -C /tmp -f "/tmp/${TARBALL}" && \
