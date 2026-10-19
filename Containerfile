@@ -173,12 +173,12 @@ RUN RESTIC_VERSION=0.19.1 && \
 # Install neovim (pinned version with checksum verification)
 RUN case "${TARGETARCH}" in \
       amd64) NVIM_ARCH="x86_64" \
-             SHA256="bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875" ;; \
+             SHA256="474430d53e6264f6d6dd18db42d6dc9df3a1b56ca9e88a325bbf860e1a811d87" ;; \
       arm64) NVIM_ARCH="arm64" \
-             SHA256="1aa5ca085249580ae0f91eb14f27ec0919773ff2d99a163d03f3d6c21ac29725" ;; \
+             SHA256="8f1f64a0bdb97247034038c3823c6cbad5bdf9ecd5751b85494b71c3ee04c815" ;; \
     esac && \
     TARBALL="nvim-linux-${NVIM_ARCH}.tar.gz" && \
-    curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.5/${TARBALL}" \
+    curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.6/${TARBALL}" \
         -o "/tmp/${TARBALL}" && \
     echo "${SHA256}  /tmp/${TARBALL}" | sha256sum -c && \
     tar -xz -C /tmp -f "/tmp/${TARBALL}" && \
