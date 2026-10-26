@@ -187,7 +187,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install agent-browser binary (pinned version with checksum verification)
 # Chrome for Testing is amd64-only; install system chromium on arm64
-ARG AGENT_BROWSER_VERSION=v0.38.1
+ARG AGENT_BROWSER_VERSION=v0.39.4
 RUN case "${TARGETARCH}" in \
       amd64) BINARY="agent-browser-linux-x64" \
              SHA256="5100149a1903211c889de4e545bf36d90803740cea4f99aa22651649f9205ea1" ;; \
