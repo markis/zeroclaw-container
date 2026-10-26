@@ -187,12 +187,12 @@ RUN case "${TARGETARCH}" in \
 
 # Install agent-browser binary (pinned version with checksum verification)
 # Chrome for Testing is amd64-only; install system chromium on arm64
-ARG AGENT_BROWSER_VERSION=v0.38.1
+ARG AGENT_BROWSER_VERSION=v0.39.4
 RUN case "${TARGETARCH}" in \
       amd64) BINARY="agent-browser-linux-x64" \
-             SHA256="5100149a1903211c889de4e545bf36d90803740cea4f99aa22651649f9205ea1" ;; \
+             SHA256="aa82c8ee81a38b8ad9ba61af02ced6dcbbb8af36dd8b2b479384177f8aa077a6" ;; \
       arm64) BINARY="agent-browser-linux-arm64" \
-             SHA256="937b315ee0761e8a62f7950ddcfef9b3d3d8e8d5eb9c9d2bf9e23e5725664511" ;; \
+             SHA256="922b60dbd9f5c8b5c0f39b453bfe8cbf61b83abd487344028a508e8c4dca7883" ;; \
     esac && \
     curl -fsSL "https://github.com/vercel-labs/agent-browser/releases/download/${AGENT_BROWSER_VERSION}/${BINARY}" \
         -o /usr/local/bin/agent-browser && \
